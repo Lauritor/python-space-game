@@ -52,6 +52,7 @@ def rotate_point(rotation_center, point, roll, pitch, yaw):
     new_z = new_coordinates[2][0] + rotation_center[2]
     return [new_x, new_y, new_z]
 
+
 def rotate_object(object, fps):
     polygons = object.polygons
     roll_speed = object.roll_speed / fps
@@ -90,6 +91,7 @@ def rotate_object(object, fps):
         new_polygons.append(new_polygon)
     return new_polygons
 
+
 def calculate_frustum(player, screen_distance):
     """ Function to calculate viewing frustum planes based on player location.
 
@@ -97,14 +99,10 @@ def calculate_frustum(player, screen_distance):
     :return: List of vector normals of the viewing frustum planes.
     """
 
-    screen_corner_1 = [player.loc_x - (1920 / 2), player.loc_y + (1080 / 2),
-                       screen_distance + player.loc_z]
-    screen_corner_2 = [player.loc_x + (1920 / 2), player.loc_y + (1080 / 2),
-                       screen_distance + player.loc_z]
-    screen_corner_3 = [player.loc_x + (1920 / 2), player.loc_y - (1080 / 2),
-                       screen_distance + player.loc_z]
-    screen_corner_4 = [player.loc_x - (1920 / 2), player.loc_y - (1080 / 2),
-                       screen_distance + player.loc_z]
+    screen_corner_1 = [player.loc_x - (1920 / 2), player.loc_y - (1080 / 2), screen_distance + player.loc_z]
+    screen_corner_2 = [player.loc_x + (1920 / 2), player.loc_y - (1080 / 2), screen_distance + player.loc_z]
+    screen_corner_3 = [player.loc_x + (1920 / 2), player.loc_y + (1080 / 2), screen_distance + player.loc_z]
+    screen_corner_4 = [player.loc_x - (1920 / 2), player.loc_y + (1080 / 2), screen_distance + player.loc_z]
     screen_corners = [screen_corner_1, screen_corner_2, screen_corner_3, screen_corner_4]
     corners = []
     for point in screen_corners:
@@ -133,6 +131,7 @@ def calculate_frustum(player, screen_distance):
         B = np.array(plane_point_pair[1]) - np.array(player.get_coords())
         plane_normal = np.cross(A, B)
         plane_normals.append(plane_normal)
+
     # Screen end of the frustum. Plane determined by two vectors from screen corners to screen corners.
     A = np.array(corners[2]) - np.array(corners[1])
     B = np.array(corners[0]) - np.array(corners[1])

@@ -14,7 +14,7 @@ def game_loop():
         Reads the user key inputs and renders the game graphics.
     """
     player = PlayerCharacter(0, 0, 0)
-    station1 = TestStation(100, 100, 1000)
+    station1 = TestStation(100, 300, 1000)
 
     pygame.init()
 
@@ -84,13 +84,6 @@ def game_loop():
 
        # pygame.draw.circle(screen, (250,250,250),  (player.loc_x - (1920 / 2 - 5), player.loc_y + (1080 / 2 - 5)), 5, )
 
-    # screen_corner_2 = [player.loc_x + (1920 / 2), player.loc_y + (1080 / 2),
-    #                    screen_distance + player.loc_z]
-    # screen_corner_3 = [player.loc_x + (1920 / 2), player.loc_y - (1080 / 2),
-    #                    screen_distance + player.loc_z]
-    # screen_corner_4 = [player.loc_x - (1920 / 2), player.loc_y - (1080 / 2),
-    #                    screen_distance + player.loc_z])
-
         rendered_polygons = []
         for i, polygon in enumerate(polygons):
             color_p = station1.polygon_colors[i]
@@ -101,14 +94,14 @@ def game_loop():
                 for plane_normal in plane_normals:
 
                     dot_products.append(np.dot(plane_normal, np.array(point)))
-            prinout = []
+            printout = []
             for x in dot_products:
                 if x > 0:
-                    prinout.append(1)
+                    printout.append(1)
                 else:
-                    prinout.append(-1)
-            print(prinout[0:5])
-            if any(dot_product > 0 for dot_product in dot_products):
+                    printout.append(-1)
+            print(printout[0:5])
+            if any(dot_product < 0 for dot_product in dot_products):
                 in_view = False
 
             # print("__________________")
@@ -176,7 +169,7 @@ def game_loop():
                 #                                  (final_x[2], final_y[2]), (final_x[3], final_y[3])],color_p)
                 # pygame.gfxdraw.filled_polygon(screen, [(final_x[0], final_y[0]), (final_x[1], final_y[1]),
                 #                                   (final_x[2], final_y[2]), (final_x[3], final_y[3])], color_p)
-#testasdasd
+
         #print(rendered_polygons)
         rendered_polygons = sorted(rendered_polygons, key=lambda x: x[2], reverse=True)
         for polygon in rendered_polygons:
