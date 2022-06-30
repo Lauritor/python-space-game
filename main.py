@@ -5,8 +5,9 @@ import math
 import numpy as np
 import pygame
 import pygame.gfxdraw
-from game_engine import *
+from graphics_engine import *
 from game_objects import *
+from game_engine import *
 
 
 def game_loop():
