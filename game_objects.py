@@ -3,10 +3,10 @@
 
 class PlayerCharacter:
     def __init__(self, loc_x, loc_y, loc_z):
-        self.loc_x = 180     # Location in space: x, y, z coordinates. Y increases downwards.
-        self.loc_y = 0
-        self.loc_z = 0
-        self.roll = 0           # Orientation in space along principal axes in degrees: roll, pitch yaw.
+        self.loc_x = loc_x     # Location in space: x, y, z coordinates. Y increases downwards on screen.
+        self.loc_y = loc_y
+        self.loc_z = loc_z
+        self.roll = 0        # Orientation in space along principal axes in degrees: roll, pitch yaw.
         self.pitch = 0
         self.yaw = 0
 
@@ -22,14 +22,15 @@ class TestStation:
         # self.pitch = 0
         # self.yaw = 0
         self.roll_speed = 0    # Degrees in second.
-        self.pitch_speed = 0
+        self.pitch_speed = 3
         self.yaw_speed = 5
         self.size_x = 50
         self.size_y = 70
         self.size_z = 90
         self.polygon_type = 'square'
-                                # left red,    right green    tplight blue    botdark blue     backyellow     frontpink
-        self.polygon_colors = [(220, 0, 0), (17, 179, 0), (17, 179, 209), (17, 79, 101),(138, 140, 48), (197, 104, 173)]
+                                # left red,    right green    toplight blue    botdark blue     backyellow     frontpink
+        self.polygon_colors = [(220, 0, 0), (17, 179, 0), (17, 179, 209), (17, 79, 101),(138, 140, 48), (197, 104, 173),
+                               (17, 179, 209), (17, 179, 209), (17, 179, 209), (17, 179, 209),(17, 179, 209), (17, 179, 209)]
         self.polygons = [[[self.center_x + self.size_x/2, self.center_y + self.size_y/2, self.center_z + self.size_z/2],
                           [self.center_x + self.size_x/2, self.center_y + self.size_y/2, self.center_z - self.size_z/2],
                           [self.center_x + self.size_x/2, self.center_y - self.size_y/2, self.center_z - self.size_z/2],
