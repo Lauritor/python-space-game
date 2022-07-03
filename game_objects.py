@@ -3,12 +3,15 @@
 
 class PlayerCharacter:
     def __init__(self, loc_x, loc_y, loc_z):
-        self.loc_x = loc_x     # Location in space: x, y, z coordinates. Y increases downwards on screen.
+        self.loc_x = loc_x          # Location in space: x, y, z coordinates. Y increases downwards on screen.
         self.loc_y = loc_y
         self.loc_z = loc_z
-        self.roll = 0        # Orientation in space along principal axes in degrees: roll, pitch yaw.
+        self.roll = 0               # Orientation in space along principal axes in degrees: roll, pitch yaw.
         self.pitch = 0
         self.yaw = 0
+        self.speed = 0              # Movement speed in the direction of the velocity vector.
+        self.direction = [0, 0, 0]  # Direction of current movement.
+        self.screen_distance = 960
 
     def get_coords(self):
         return [self.loc_x, self.loc_y, self.loc_z]

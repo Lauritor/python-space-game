@@ -2,6 +2,8 @@
 
 import copy
 import math
+
+
 import numpy as np
 import pygame
 import pygame.gfxdraw
@@ -18,7 +20,7 @@ def game_loop():
     pygame.init()
 
     # Game objects
-    player = PlayerCharacter(0, 99999999999, 0)
+    player = PlayerCharacter(0, 0, 0)
     station1 = TestStation(0, 0, 1000)
     station2 = TestStation(100, 300, -1000)
 
@@ -26,7 +28,7 @@ def game_loop():
     fps = 120
     window_width = 1920
     window_height = 1080
-    screen_distance = 700
+    screen_distance = 960
 
     while True:
         clock = pygame.time.Clock()
@@ -39,18 +41,26 @@ def game_loop():
                 if event.key == pygame.K_ESCAPE:
                     quit()
         key_states = pygame.key.get_pressed()
+        frame_roll, frame_pitch, frame_yaw = 0, 0, 0
         if key_states[pygame.K_w]:
-            player.pitch += 1
+            #frame_pitch += 1
+            frame_pitch += 1
         if key_states[pygame.K_s]:
-            player.pitch -= 1
-        if key_states[pygame.K_d]:
-            player.yaw += 1
-        if key_states[pygame.K_a]:
-            player.yaw -= 1
+            frame_pitch -= 1
         if key_states[pygame.K_q]:
-            player.loc_z -= 1
+            frame_yaw -= 1
         if key_states[pygame.K_e]:
-            player.loc_z += 1
+            frame_yaw += 1
+        if key_states[pygame.K_a]:
+            frame_roll += 1
+        if key_states[pygame.K_d]:
+            frame_roll -= 1
+
+        if key_states[pygame.K_LSHIFT]:
+            player.speed += 1/120
+        if key_states[pygame.K_LCTRL]:
+            player.speed -= 1/120
+
         if key_states[pygame.K_KP8]:
             player.loc_y += 1
         if key_states[pygame.K_KP2]:
@@ -70,17 +80,48 @@ def game_loop():
             player.roll -= 1
             #print(player.roll)
 
+        objects = [station1, station2]
+        for object in objects:
+            obj_center = [object.center_x, object.center_y, object.center_z]
+            new_center = rotate_point(player.get_coords(), obj_center, frame_roll, frame_pitch, frame_yaw)
+            object.center_x, object.center_y, object.center_z = new_center[0], new_center[1], new_center[2]
+
+
+            object.polygons = rotate_object(object, fps)
+            new_polygons = []
+            for polygon in object.polygons:
+                new_poly = []
+                for point in polygon:
+                    new_poly.append(rotate_point(player.get_coords(), point, frame_roll, frame_pitch, frame_yaw))
+                new_polygons.append(new_poly)
+            object.polygons = new_polygons
+
+
+
+        #station1.polygons = rotate_object(station1, fps)
+        #station2.polygons = rotate_object(station2, fps)
+
+        station1_polygons = copy.deepcopy(station1.polygons)  # Copy to edit values.
+        station2_polygons = copy.deepcopy(station2.polygons)
+        polygons = station1_polygons + station2_polygons
+
+        # rotated_polygons = []
+        # for polygon in polygons:
+        #     rotated_poly = []
+        #     for point in polygon:
+        #         point = rotate_point(player.get_coords(), point, frame_roll, frame_pitch, frame_yaw)
+       #print(player.roll % 360, player.pitch % 360, player.yaw % 360)
+        #player.pitch += player.roll % 360 / 1
+        #player.roll += frame_roll
+
+
         # Draw crosshairs.
         pygame.draw.circle(screen, (250, 250, 250), (960, 540), 3)
         # pygame.draw.circle(screen, (17, 179, 0), (10, 10), 3)
         # pygame.draw.circle(screen, (17, 179, 209), (1910, 1070), 3)
         # Object rotation animation.
-        station1.polygons = rotate_object(station1, fps)
-        station2.polygons = rotate_object(station2, fps)
 
-        station1_polygons = copy.deepcopy(station1.polygons) # Copy to edit values.
-        station2_polygons = copy.deepcopy(station2.polygons)
-        polygons = station1_polygons + station2_polygons
+
 
         frustum_planes = calculate_frustum(player, screen_distance)
 
@@ -93,7 +134,7 @@ def game_loop():
             # print(dot_products)
             #print(in_view)
             if in_view:
-                rendered_polygon = render_polygon(polygon, player, screen_distance)
+                rendered_polygon = render_polygon(polygon, player)
                 rendered_polygon.append(color_p)
                 rendered_polygons.append(rendered_polygon)
 
@@ -102,43 +143,39 @@ def game_loop():
             pygame.gfxdraw.aapolygon(screen, polygon[0],polygon[2])
             pygame.gfxdraw.filled_polygon(screen, polygon[0],polygon[2])
 
-        screen_corner_1 = [player.loc_x - (1910 / 2), player.loc_y - (1070 / 2), screen_distance + player.loc_z]
-        screen_corner_2 = [player.loc_x + (1910 / 2), player.loc_y - (1070 / 2), screen_distance + player.loc_z]
-        screen_corner_3 = [player.loc_x + (1910 / 2), player.loc_y + (1070 / 2), screen_distance + player.loc_z]
-        screen_corner_4 = [player.loc_x - (1910 / 2), player.loc_y + (1070 / 2), screen_distance + player.loc_z]
+        screen_corner_1 = [player.loc_x - (1850 / 2), player.loc_y - (1000 / 2), screen_distance + player.loc_z]
+        screen_corner_2 = [player.loc_x + (1850 / 2), player.loc_y - (1000 / 2), screen_distance + player.loc_z]
+        screen_corner_3 = [player.loc_x + (1850 / 2), player.loc_y + (1000 / 2), screen_distance + player.loc_z]
+        screen_corner_4 = [player.loc_x - (1850 / 2), player.loc_y + (1000 / 2), screen_distance + player.loc_z]
         corners = []
+
         for point in [screen_corner_1, screen_corner_2, screen_corner_3, screen_corner_4]:
-            corners.append(point)
-            # corners.append(
-            #     rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360))
-        #print("corners",  corners)
+            print(point)
+            # print(point)
+            corners.append(
+                rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360))
 
+        print(corners)
+        rendered_corners = []
+        for i, point in enumerate(corners):
+            rendered_point = render_point(point, player)
+            rendered_corners.append(rendered_point)
 
-        render_corners = []
-        for point in corners:
-            point = rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360)
-            # Distance from camera to rendered point.
-            hypotenuse_distance = euclidean_distance(player.get_coords(), point)
-
-            # if hasdadypotenuse_distance == 0:
-            #     hypotenuse_distance = 0.00001
-
-            hypotenuse_object = math.sqrt((player.loc_x - point[0]) ** 2 + (player.loc_y - point[1]) ** 2)
-            angle_rad = math.asin(hypotenuse_object / hypotenuse_distance)  # Angle between camera direction and object.
-            # print(player.get_coords(), point)
-            # print(angle_rad)
-
-            hypotenuse_screen = screen_distance / math.cos(angle_rad)
-            distance_ratio = hypotenuse_screen / hypotenuse_distance
-
-            render_corners.append([(point[0]) * distance_ratio + 1920 / 2, (point[1]) * distance_ratio + 1080 / 2])
-            # upleft red,    upright green    botirght blue      bot left pink
-        colors = [(220, 0, 0), (17, 179, 0), (17, 179, 209), (197, 104, 173)]
-        for i, point in enumerate(render_corners):
-            #print("point", point)
+        # left red,    right green    toplight blue    botdark blue
+        colors = [(220, 0, 0), (17, 179, 0), (17, 179, 209), (17, 79, 101)]
+        for i, point in enumerate(rendered_corners):
             pygame.draw.circle(screen, colors[i], (point[0], point[1]), 3)
 
-        print(check_rendering([[0,0,701]], frustum_planes))
+
+        alpha = player.yaw % 360
+        beta = player.pitch % 360
+        x = (player.loc_x + player.speed) * math.cos(alpha) * math.cos(beta)
+        z = (player.loc_y + player.speed) * math.sin(alpha) * math.cos(beta)
+        y = (player.loc_z + player.speed) * math.sin(beta)
+        player.loc_x = x
+        player.loc_y = y
+        player.loc_z = z
+        print(player.get_coords(), player.speed)
         pygame.display.update()
         clock.tick(fps)  # Limit framerate to 120 FPS.
 

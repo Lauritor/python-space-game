@@ -31,9 +31,11 @@ def rotate_point(rotation_center, point, roll, pitch, yaw):
     y_translate = point[1] - rotation_center[1]
     z_translate = point[2] - rotation_center[2]
 
+    # Equation: alfa, beta, gamma = yaw, pitch, roll
+    # This program:
     alfa = math.radians(roll)
-    gamma = math.radians(pitch)
     beta = math.radians(yaw)
+    gamma = math.radians(pitch)
     cos_a, sin_a = np.cos(alfa), np.sin(alfa)
     cos_b, sin_b = np.cos(beta), np.sin(beta)
     cos_g, sin_g = np.cos(gamma), np.sin(gamma)
@@ -43,16 +45,46 @@ def rotate_point(rotation_center, point, roll, pitch, yaw):
         [[cos_a * cos_b, cos_a * sin_b * sin_g - sin_a * cos_g, cos_a * sin_b * cos_g + sin_a * sin_g],
          [sin_a * cos_b, sin_a * sin_b * sin_g + cos_a * cos_g, sin_a * sin_b * cos_g - cos_a * sin_g],
          [-sin_b, cos_b * sin_g, cos_b * cos_g]])
+    # roll_matrix = np.array([[cos_a,   -sin_a,  0],
+    #                        [sin_a,    cos_a,  0],
+    #                        [0,        0,      1]])
+    # pitch_matrix = np.array([[cos_b,  0,  sin_b],
+    #                          [0,      1,      0],
+    #                          [-sin_b, 0,  cos_b]])
+    # yaw_matrix = np.array([[1,      -0,      0],
+    #                         [0,   cos_g, -sin_g],
+    #                         [0,   sin_g,  cos_g]])
     translated_coordinates = np.array([[x_translate], [y_translate], [z_translate]])
     new_coordinates = np.dot(rotation_matrix, translated_coordinates)
+    #new_coordinates = np.linalg.multi_dot([yaw_matrix, pitch_matrix, roll_matrix, translated_coordinates])
 
     # Translate points back to their original coordinates.
     new_x = new_coordinates[0][0] + rotation_center[0]
     new_y = new_coordinates[1][0] + rotation_center[1]
     new_z = new_coordinates[2][0] + rotation_center[2]
 
+    #Coordinate changes of rolling object: https://math.stackexchange.com/a/270204
+    # center_x, center_y, center_z = rotation_center[0], rotation_center[1], rotation_center[2]
+    # roll_angle_rad = math.radians(roll)
+    # rolled_x = (point[0] - center_x) * math.cos(roll_angle_rad) - (point[1] - center_y) * \
+    #            math.sin(roll_angle_rad) + center_x
+    # rolled_y = (point[0] - center_x) * math.sin(roll_angle_rad) + (point[1] - center_y) * \
+    #            math.cos(roll_angle_rad) + center_y
+    #
+    # pitch_angle_rad = math.radians(pitch)
+    # pitched_y = (rolled_y - center_y) * math.cos(pitch_angle_rad) - (point[2] - center_z) * \
+    #             math.sin(pitch_angle_rad) + center_y
+    # pitched_z = (rolled_y - center_y) * math.sin(pitch_angle_rad) + (point[2] - center_z) * \
+    #             math.cos(pitch_angle_rad) + center_z
+    #
+    # yaw_angle_rad = math.radians(yaw)
+    # yawed_x = (rolled_x - center_x) * math.cos(yaw_angle_rad) - (pitched_z - center_z) * \
+    #           math.sin(yaw_angle_rad) + center_x
+    # yawed_z = (rolled_x - center_x) * math.sin(yaw_angle_rad) + (pitched_z - center_z) * \
+    #           math.cos(yaw_angle_rad) + center_z
+    #new_polygon.append([yawed_x, pitched_y, yawed_z])
     return [new_x, new_y, new_z]
-
+    #return [yawed_x, pitched_y, yawed_z]
 
 def rotate_object(object, fps):
     polygons = object.polygons
@@ -92,7 +124,25 @@ def rotate_object(object, fps):
         new_polygons.append(new_polygon)
     return new_polygons
 
-def render_polygon(polygon, player, screen_distance):
+def render_point(point, player):
+    screen_distance = player.screen_distance
+    #point = rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360)
+    # Distance from camera to rendered point.
+    hypotenuse_distance = math.sqrt(
+        (player.loc_x - point[0]) ** 2 + (player.loc_y - point[1]) ** 2 + (player.loc_z - point[2]) ** 2)
+
+    hypotenuse_object = math.sqrt((player.loc_x - point[0]) ** 2 + (player.loc_y - point[1]) ** 2)
+    angle_rad = math.asin(hypotenuse_object / hypotenuse_distance)  # Angle between camera direction and object.
+
+    hypotenuse_screen = screen_distance / math.cos(angle_rad)
+    distance_ratio = hypotenuse_screen / hypotenuse_distance
+
+    new_x = (-point[0]) * distance_ratio + 1920 / 2  # Center on screen center.
+    new_y = (-point[1]) * distance_ratio + 1080 / 2
+    z_depth = hypotenuse_distance
+    return [new_x, new_y, z_depth]
+
+def render_polygon(polygon, player):
     final_x, final_y, z_depths = [], [], []
     for point in polygon:
         # matrix_a = np.array([[point[0]], [point[1]], [point[2]]])
@@ -118,26 +168,10 @@ def render_polygon(polygon, player, screen_distance):
         # final_x.append(200 / matrix_d[2][0] * matrix_d[0][0] + 200)
         # final_y.append(200 / matrix_d[2][0] * matrix_d[1][0] + 200)
         # # Render using perspective projection: https://en.wikipedia.org/wiki/3D_projection#Mathematical_formula
-
-        point = rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360)
-        # Distance from camera to rendered point.
-        hypotenuse_distance = math.sqrt((player.loc_x - point[0]) ** 2 + (player.loc_y - point[1]) ** 2 + (player.loc_z - point[2]) ** 2)
-
-        # if hasdadypotenuse_distance == 0:
-        #     hypotenuse_distance = 0.00001
-
-        hypotenuse_object = math.sqrt((player.loc_x - point[0]) ** 2 + (player.loc_y - point[1]) ** 2)
-        angle_rad = math.asin(hypotenuse_object / hypotenuse_distance)  # Angle between camera direction and object.
-        # print(player.get_coords(), point)
-        # print(angle_rad)
-
-        hypotenuse_screen = screen_distance / math.cos(angle_rad)
-        distance_ratio = hypotenuse_screen / hypotenuse_distance
-
-        final_x.append((point[0]) * distance_ratio + 1920 / 2)  # Center on screen center.
-        final_y.append((point[1]) * distance_ratio + 1080 / 2)
-        z_depths.append(hypotenuse_distance)
-
+        rendered_point = render_point(point, player)
+        final_x.append(rendered_point[0])
+        final_y.append(rendered_point[1])
+        z_depths.append(rendered_point[2])
     depth_factor = sum(z_depths) / len(z_depths)
     return [[(final_x[0], final_y[0]), (final_x[1], final_y[1]),(final_x[2], final_y[2]), (final_x[3], final_y[3])], depth_factor]
 
@@ -155,9 +189,10 @@ def calculate_frustum(player, screen_distance):
 
     corners = []
     for point in [screen_corner_1, screen_corner_2, screen_corner_3, screen_corner_4]:
-        print(point)
-        corners.append(rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360))
-    print(corners)
+        #print(point)
+        #corners.append(rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360))
+        corners.append(point)
+    #print(corners)
 
     """ Plane vector normal points to the direction of the cross product of vectors that determine the plane.
         Using right-hand rule: plane formed by vectors A x B, where A = index finger, B = middle finger, points 
