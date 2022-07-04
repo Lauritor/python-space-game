@@ -56,14 +56,14 @@ def rotate_point(rotation_center, point, roll, pitch, yaw):
     #                         [0,   sin_g,  cos_g]])
     translated_coordinates = np.array([[x_translate], [y_translate], [z_translate]])
     new_coordinates = np.dot(rotation_matrix, translated_coordinates)
-    #new_coordinates = np.linalg.multi_dot([yaw_matrix, pitch_matrix, roll_matrix, translated_coordinates])
+    # new_coordinates = np.linalg.multi_dot([yaw_matrix, pitch_matrix, roll_matrix, translated_coordinates])
 
     # Translate points back to their original coordinates.
     new_x = new_coordinates[0][0] + rotation_center[0]
     new_y = new_coordinates[1][0] + rotation_center[1]
     new_z = new_coordinates[2][0] + rotation_center[2]
 
-    #Coordinate changes of rolling object: https://math.stackexchange.com/a/270204
+    # Coordinate changes of rolling object: https://math.stackexchange.com/a/270204
     # center_x, center_y, center_z = rotation_center[0], rotation_center[1], rotation_center[2]
     # roll_angle_rad = math.radians(roll)
     # rolled_x = (point[0] - center_x) * math.cos(roll_angle_rad) - (point[1] - center_y) * \
@@ -82,9 +82,10 @@ def rotate_point(rotation_center, point, roll, pitch, yaw):
     #           math.sin(yaw_angle_rad) + center_x
     # yawed_z = (rolled_x - center_x) * math.sin(yaw_angle_rad) + (pitched_z - center_z) * \
     #           math.cos(yaw_angle_rad) + center_z
-    #new_polygon.append([yawed_x, pitched_y, yawed_z])
+    # new_polygon.append([yawed_x, pitched_y, yawed_z])
     return [new_x, new_y, new_z]
-    #return [yawed_x, pitched_y, yawed_z]
+    # return [yawed_x, pitched_y, yawed_z]
+
 
 def rotate_object(object, fps):
     polygons = object.polygons
@@ -124,9 +125,10 @@ def rotate_object(object, fps):
         new_polygons.append(new_polygon)
     return new_polygons
 
+
 def render_point(point, player):
     screen_distance = player.screen_distance
-    #point = rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360)
+    # point = rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360)
     # Distance from camera to rendered point.
     hypotenuse_distance = math.sqrt(
         (player.loc_x - point[0]) ** 2 + (player.loc_y - point[1]) ** 2 + (player.loc_z - point[2]) ** 2)
@@ -141,6 +143,7 @@ def render_point(point, player):
     new_y = (-point[1]) * distance_ratio + 1080 / 2
     z_depth = hypotenuse_distance
     return [new_x, new_y, z_depth]
+
 
 def render_polygon(polygon, player):
     final_x, final_y, z_depths = [], [], []
@@ -173,7 +176,9 @@ def render_polygon(polygon, player):
         final_y.append(rendered_point[1])
         z_depths.append(rendered_point[2])
     depth_factor = sum(z_depths) / len(z_depths)
-    return [[(final_x[0], final_y[0]), (final_x[1], final_y[1]),(final_x[2], final_y[2]), (final_x[3], final_y[3])], depth_factor]
+    return [[(final_x[0], final_y[0]), (final_x[1], final_y[1]), (final_x[2], final_y[2]), (final_x[3], final_y[3])],
+            depth_factor]
+
 
 def calculate_frustum(player, screen_distance):
     """ Function to calculate viewing frustum planes based on player location.
@@ -189,10 +194,10 @@ def calculate_frustum(player, screen_distance):
 
     corners = []
     for point in [screen_corner_1, screen_corner_2, screen_corner_3, screen_corner_4]:
-        #print(point)
-        #corners.append(rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360))
+        # print(point)
+        # corners.append(rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360))
         corners.append(point)
-    #print(corners)
+    # print(corners)
 
     """ Plane vector normal points to the direction of the cross product of vectors that determine the plane.
         Using right-hand rule: plane formed by vectors A x B, where A = index finger, B = middle finger, points 
@@ -214,44 +219,41 @@ def calculate_frustum(player, screen_distance):
     # Sides of frustum. Planes determined by two vectors from camera to screen corners.
     plane_normals = []
     for plane_point_pair in plane_points:
-        #print("pair", plane_point_pair, player.get_coords())
+        # print("pair", plane_point_pair, player.get_coords())
         # Vector direction: end point - start point.
         A = np.subtract(np.array(plane_point_pair[0]), np.array(player.get_coords()))
         B = np.subtract(np.array(plane_point_pair[1]), np.array(player.get_coords()))
         plane_normal = np.cross(A, B)
         d = np.dot(plane_normal, plane_point_pair[0])
-        #print("dddddddddddddd", d)
         plane_normal = np.concatenate([plane_normal, [d]])
-        #print("norm", plane_normal)
         plane_normals.append(plane_normal)
 
     # Screen end of the frustum. Plane determined by two vectors from screen corners to screen corners.
-    A = np.subtract(np.array(corners[2]),np.array(corners[1]))
-    B = np.subtract(np.array(corners[0]),np.array(corners[1]))
-    plane_normal = np.cross(A,B)
+    A = np.subtract(np.array(corners[2]), np.array(corners[1]))
+    B = np.subtract(np.array(corners[0]), np.array(corners[1]))
+    plane_normal = np.cross(A, B)
     d = np.dot(plane_normal, np.array(corners[2]))
-    #print("dddddddddddddd", d)
+
     plane_normal = np.concatenate([plane_normal, [d]])
     plane_normals.append(plane_normal)
-    #plane_normals.append(np.cross(A, B))
-    #print("1",plane_normals)
+
     return plane_normals
 
 
 def check_rendering(polygon, frustum_planes):
-    #print("2",frustum_planes)
+    # print("2",frustum_planes)
     in_view = True
     dot_products = []
     for point in polygon:
         point.append(1)
-        #print("p",point)
+        # print("p",point)
         for plane_normal in frustum_planes:
-            #plane_normal = np.concatenate([plane_normal, np.array([0])])
-            #print("plane normal", plane_normal)
-            #print("point", np.array(point))
-            #print("dot", np.dot(np.array(point), plane_normal))
+            # plane_normal = np.concatenate([plane_normal, np.array([0])])
+            # print("plane normal", plane_normal)
+            # print("point", np.array(point))
+            # print("dot", np.dot(np.array(point), plane_normal))
             dot_products.append(np.dot(np.array(point), plane_normal))
-    #print(dot_products[0:5])
+    # print(dot_products[0:5])
     if any(dot_product < 0 for dot_product in dot_products):
         in_view = False
 

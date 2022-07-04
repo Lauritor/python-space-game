@@ -18,8 +18,12 @@ def game_loop():
     """
 
     pygame.init()
+    #print(pygame.font.get_fonts())
+    # Text displaying on screen.
+    font = pygame.font.SysFont('century', 24)
 
-    # Game objects
+
+    # Game objects.
     player = PlayerCharacter(0, 0, 0)
     station1 = TestStation(0, 0, 1000)
     station2 = TestStation(100, 300, -1000)
@@ -35,6 +39,9 @@ def game_loop():
         pygame.event.set_grab(True)
         screen = pygame.display.set_mode((window_width, window_height))
         mouse_pos = pygame.mouse.get_pos()
+
+        speed_meter = font.render(str(round(player.throttle)), True, (255,255,255))
+        screen.blit(speed_meter, (20, 20))
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
@@ -57,9 +64,11 @@ def game_loop():
             frame_roll -= 1
 
         if key_states[pygame.K_LSHIFT]:
-            player.speed += 1/120
+            if player.throttle < 200:
+                player.throttle += 1/3
         if key_states[pygame.K_LCTRL]:
-            player.speed -= 1/120
+            if player.throttle > -50:
+                player.throttle -= 1/3
 
         if key_states[pygame.K_KP8]:
             player.loc_y += 1
@@ -150,12 +159,12 @@ def game_loop():
         corners = []
 
         for point in [screen_corner_1, screen_corner_2, screen_corner_3, screen_corner_4]:
-            print(point)
+            #print(point)
             # print(point)
             corners.append(
                 rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360))
 
-        print(corners)
+        #print(corners)
         rendered_corners = []
         for i, point in enumerate(corners):
             rendered_point = render_point(point, player)
@@ -167,17 +176,33 @@ def game_loop():
             pygame.draw.circle(screen, colors[i], (point[0], point[1]), 3)
 
 
-        alpha = player.yaw % 360
-        beta = player.pitch % 360
-        x = (player.loc_x + player.speed) * math.cos(alpha) * math.cos(beta)
-        z = (player.loc_y + player.speed) * math.sin(alpha) * math.cos(beta)
-        y = (player.loc_z + player.speed) * math.sin(beta)
-        player.loc_x = x
-        player.loc_y = y
-        player.loc_z = z
-        print(player.get_coords(), player.speed)
+        # Movement and inertia calculations.
+        alpha = frame_yaw % 360
+        beta = frame_pitch % 360
+        z = player.throttle/fps * math.cos(alpha) * math.cos(beta)
+        y = player.throttle/fps * math.sin(beta)
+        x = player.throttle/fps * math.sin(alpha) * math.cos(beta)
+        print("current", alpha, beta, [x, y, z])
+        player.direction = player.direction + np.array([x, y, z])
+
+
+        #speed = np.sqrt(player.direction.dot(player.direction))
+        #print("speed", speed)
+        print("direction", player.direction)
+        #print(player.direction)
+        #player.direction = np.divide(player.direction, player.speed)
+
+        #print(player.direction)
+        player.loc_x += player.direction[0] / fps
+        player.loc_y += player.direction[1] / fps
+        player.loc_z += player.direction[2] / fps
+
+        print(player.get_coords())
+
+
+
         pygame.display.update()
-        clock.tick(fps)  # Limit framerate to 120 FPS.
+        clock.tick(fps)             # Limit framerate to 120 FPS.
 
 
 game_loop()

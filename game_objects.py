@@ -1,5 +1,5 @@
 """ Classes for different game objects. """
-
+import numpy as np
 
 class PlayerCharacter:
     def __init__(self, loc_x, loc_y, loc_z):
@@ -9,9 +9,10 @@ class PlayerCharacter:
         self.roll = 0               # Orientation in space along principal axes in degrees: roll, pitch yaw.
         self.pitch = 0
         self.yaw = 0
+        self.direction = np.array([0, 0, 0])  # Direction of current movement.
         self.speed = 0              # Movement speed in the direction of the velocity vector.
-        self.direction = [0, 0, 0]  # Direction of current movement.
-        self.screen_distance = 960
+        self.screen_distance = 960  # Distance from player (camera) to rendering screen.
+        self.throttle = 0           # User inputted max speed of the ship.
 
     def get_coords(self):
         return [self.loc_x, self.loc_y, self.loc_z]
