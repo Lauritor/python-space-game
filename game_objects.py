@@ -17,6 +17,7 @@ class PlayerCharacter:
     def get_coords(self):
         return [self.loc_x, self.loc_y, self.loc_z]
 
+
 class TestStation:
     def __init__(self, center_x, center_y, center_z):
         self.center_x = center_x

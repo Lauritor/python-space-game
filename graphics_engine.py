@@ -8,8 +8,7 @@ from game_objects import *
 
 
 def euclidean_distance(point_1, point_2):
-    # Distance between two points in any dimensional space.
-    # return math.sqrt((point_1[0] - point_2[0]) ** 2 + (point_1[1] - point_2[1]) ** 2 + (point_1[2] - point_2[2]) ** 2)
+    """ Calculate Euclidean distance between two points in any dimensional space."""
     distance_sum = 0
     for i, coordinate_1 in enumerate(point_1):
         coordinate_2 = point_2[i]
@@ -17,15 +16,15 @@ def euclidean_distance(point_1, point_2):
     return math.sqrt(distance_sum)
 
 
-# def euclidean_distance_2d(point_1, point_2):
-#     # Distance between two points in 2D space.
-#     distance_sum = 0
-#     for i, coordinate_1 in enumerate(point_1):
-#         coordinate_2 = point_2[i]
-#         distance_sum += (coordinate_1 - coordinate_2) ** 2
-#     return math.sqrt(distance_sum)
-
 def rotate_point(rotation_center, point, roll, pitch, yaw):
+    """ Rotates a 3D point around rotation center.
+    :param rotation_center: 3D coordinate to rotate around.
+    :param point: 3D coordinate to be rotated around center.
+    :param roll: Player roll angle in degrees.
+    :param pitch: Player pitch angle in degrees.
+    :param yaw: Player yaw angle in degrees.
+    :return: Rotated 3D point.
+    """
     # Using rotation matrix. Default rotation around origo (0, 0, 0) so points are translated to origo and back.
     x_translate = point[0] - rotation_center[0]
     y_translate = point[1] - rotation_center[1]
@@ -88,6 +87,11 @@ def rotate_point(rotation_center, point, roll, pitch, yaw):
 
 
 def rotate_object(object, fps):
+    """ Rotates object around center.
+    :param object:
+    :param fps:
+    :return:
+    """
     polygons = object.polygons
     roll_speed = object.roll_speed / fps
     pitch_speed = object.pitch_speed / fps
@@ -127,6 +131,12 @@ def rotate_object(object, fps):
 
 
 def render_point(point, player):
+    """ Projects 3D point into 2D coordinates to be displayed on user's screen.
+
+    :param point: 3D point
+    :param player: Player object
+    :return: Projected point on screen.
+    """
     screen_distance = player.screen_distance
     # point = rotate_point(player.get_coords(), point, player.roll % 360, player.pitch % 360, player.yaw % 360)
     # Distance from camera to rendered point.
@@ -181,9 +191,9 @@ def render_polygon(polygon, player):
 
 
 def calculate_frustum(player, screen_distance):
-    """ Function to calculate viewing frustum planes based on player location.
+    """ Calculates viewing frustum planes based on player location.
 
-    :param PlayerCharacter: PlayerCharacter object
+    :param player: PlayerCharacter object
     :return: List of vector normals of the viewing frustum planes.
     """
 
@@ -241,6 +251,11 @@ def calculate_frustum(player, screen_distance):
 
 
 def check_rendering(polygon, frustum_planes):
+    """ Checks if point is inside viewing frustum and should be rendered.
+    :param polygon: Multi-point game object.
+    :param frustum_planes: Frustum plane normals.
+    :return: Boolean point should or should not be rendered.
+    """
     # print("2",frustum_planes)
     in_view = True
     dot_products = []
