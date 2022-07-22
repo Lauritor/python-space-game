@@ -8,7 +8,6 @@ def player_movement(frame_yaw, frame_pitch, player, fps):
     :param player: Player object.
     :return:
     """
-
     # Movement and inertia calculations.
     alpha = frame_yaw % 360
     beta = frame_pitch % 360
@@ -17,7 +16,9 @@ def player_movement(frame_yaw, frame_pitch, player, fps):
     x = player.throttle / fps * math.sin(alpha) * math.cos(beta)
     #print("current", alpha, beta, [x, y, z])
     player.direction = player.direction + np.array([x, y, z])
-
+    player.direction[1] = player.direction[1] * 0.99
+    player.direction[2] = player.direction[2] * 0.99
+    print(player.direction)
     # speed = np.sqrt(player.direction.dot(player.direction))
     # print("speed", speed)
     #print("direction", player.direction)

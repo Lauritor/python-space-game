@@ -64,6 +64,8 @@ def game_loop():
         if key_states[pygame.K_d]:
             frame_roll -= 1
 
+        if key_states[pygame.K_x]:
+            player.throttle = 0
         if key_states[pygame.K_LSHIFT]:
             if player.throttle < 200:
                 player.throttle += 1 / 3
